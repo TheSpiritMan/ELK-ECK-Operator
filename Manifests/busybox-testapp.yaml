@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: busybox-testapp
+  name: busybox-testapp
+spec:
+  containers:
+  - image: busybox
+    name: busybox-testapp
+    args: [/bin/sh, -c, 'i=0; while true; do echo "Busybox TestApp: $i: $(date)"; i=$((i+1)); sleep 2; done']
+  restartPolicy: Always

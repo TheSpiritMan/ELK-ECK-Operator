@@ -1,0 +1,28 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elk-cluster
+  namespace: elk
+spec:
+  version: 9.1.5
+  nodeSets:
+  - name: default
+    count: 3
+    config:
+      node.store.allow_mmap: false
+
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: elk-kibana
+  namespace: elk
+spec:
+  version: 9.1.5
+  count: 1
+  elasticsearchRef:
+    name: elk-cluster
+  http:
+    service:
+      spec:
+        type: LoadBalancer

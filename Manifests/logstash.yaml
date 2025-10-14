@@ -1,0 +1,9 @@
+apiVersion: logstash.k8s.elastic.co/v1alpha1
+kind: Logstash
+metadata:
+  name: elk-logstash
+  namespace: elk
+
+spec:
+  version: 9.1.5
+  count: 1

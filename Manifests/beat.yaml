@@ -1,0 +1,22 @@
+apiVersion: beat.k8s.elastic.co/v1beta1
+kind: Beat
+metadata:
+  name: elk-heartbeat
+  namespace: elk
+spec:
+  type: heartbeat
+  version: 9.1.5
+  elasticsearchRef:
+    name: elk-cluster
+  config:
+    heartbeat.monitors:
+      - type: tcp
+        schedule: '@every 5s'
+        hosts:
+          - 'elk-cluster-es-http.elk.svc:9200'
+  deployment:
+    replicas: 1
+    podTemplate:
+      spec:
+        securityContext:
+          runAsUser: 0
