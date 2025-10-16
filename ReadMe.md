@@ -6,7 +6,12 @@
 
 ## Provision VM
 - I am using [Vagrantfile](./Vagrantfile) to provision VM for me in local infrastructure.
-- For me, my VM IP is `192.168.121.2`.
+- For me, IP of each nodes:
+    - Host: `192.168.121.1`
+    - ELK: `192.168.121.2`
+    - Worker1: `192.168.121.101`
+    - Worker2: `192.168.121.166`
+    - Worker3: `192.168.121.59`
 
 ## ELK Deployment Options
 - There are two ways to deploy ELK Stack:
@@ -87,6 +92,7 @@
 
 #  K8s cluster
 - I am using [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster) to create local K8s cluster.
+- `Kind` was already installed in my Host Machine. So I have deployed Kind Cluster in my Host machine instead of any VMs.
 - Command:
     ```sh
     kind create cluster --config cluster-config.yaml
@@ -348,3 +354,142 @@
     <img src="./Assets/01-Kibana-Logs.png" width=1200px height=600px>
 
 > [!NOTE]: `Busybox` is from logs file not a container name.
+
+## Exposing Port to All Interface.
+- Since now, our services was exposed to only Cluster IP and LoadBalancer. LoadBalancer was also only Docker Network Interface.
+- Let's expose this services to all interface so it can be ping through Libvirt Interface and from all VMs.
+- Command:
+    ```sh
+    kubectl -n elk port-forward svc/elk-kibana-kb-http 5601:5601 --address 0.0.0.0 &
+    kubectl -n elk port-forward svc/elk-cluster-es-http 9200:9200 --address 0.0.0.0 &
+    kubectl -n elk port-forward svc/elk-logstash-ls-beats 5044:5044 --address 0.0.0.0 &
+    wait
+    ```
+> [!NOTE]: Keep this terminal session open.
+- Test connection:
+    ```sh
+    ss -tulpn | awk '$5 ~ /(9200|5601|5044)/' 
+    ```
+
+- Output:
+    ```sh
+    tcp   LISTEN 0      4096                            0.0.0.0:9200       0.0.0.0:*    users:(("kubectl",pid=401109,fd=7))      
+    tcp   LISTEN 0      4096                            0.0.0.0:5601       0.0.0.0:*    users:(("kubectl",pid=401108,fd=7))      
+    tcp   LISTEN 0      4096                            0.0.0.0:5044       0.0.0.0:*    users:(("kubectl",pid=401110,fd=7)) 
+    ```
+
+# Collect Logs from VMs
+
+## Worker 3
+- Here we are using elastic agent to collect logs and forwards them directly to ElasticSearch.
+- Install Nginx and Fail2Ban:
+    ```sh
+    sudo -i
+    apt update && apt install nginx fail2ban nftables sed -y
+    ```
+
+### Elastic Search Agent:
+-  Visit Kibana UI: https://172.19.0.100:5601 or https://192.168.122.1:5601. Login using above creds: `elastic`:`M7u3Y16wm9W06IoYw08n1qok`.
+- Then Go to, `Observability` -> `Infrastructure`. Click on `Add Data`. Select `Host` and `Elastic Agent: Logs & Metrics`. We will be given some command like below:
+    ```sh
+    curl https://0.0.0.0:5601/4a62c99c68a5/plugins/observabilityOnboarding/assets/auto_detect.sh -so auto_detect.sh && sudo bash auto_detect.sh --id=ffaf4723-4e44-4f97-b854-a9f5797facc7 --kibana-url=https://0.0.0.0:5601 --install-key=NHJLNzdKa0JpOG44dS0wY1FURy06djZ2cExFY1o4MDZJV24tZnNhQmY1UQ== --ingest-key=NGJLNzdKa0JpOG44dS0wY1FURy06cXpkZDlmRllWbmxJMjM1dEdpZm04UQ== --ea-version=9.1.5
+    ```
+- As we can above command contains multiple command:
+    - Command 1: `curl https://0.0.0.0:5601/4a62c99c68a5/plugins/observabilityOnboarding/assets/auto_detect.sh -so auto_detect.sh`
+    - Command 2: `sudo bash auto_detect.sh --id=ffaf4723-4e44-4f97-b854-a9f5797facc7 --kibana-url=https://0.0.0.0:5601 --install-key=NHJLNzdKa0JpOG44dS0wY1FURy06djZ2cExFY1o4MDZJV24tZnNhQmY1UQ== --ingest-key=NGJLNzdKa0JpOG44dS0wY1FURy06cXpkZDlmRllWbmxJMjM1dEdpZm04UQ== --ea-version=9.1.5`
+
+- If we simply copy and paste this above command in our `Worker 3` terminal. It will fail.
+- So let's modify.
+- Commands:
+    - Command 1: `curl -k https://192.168.121.1:5601/4a62c99c68a5/plugins/observabilityOnboarding/assets/auto_detect.sh -so auto_detect.sh`
+    - Command 2: `sudo sed -i 's/curl /curl -k /g' auto_detect.sh`
+    - Command 3: `sudo bash auto_detect.sh --id=ffaf4723-4e44-4f97-b854-a9f5797facc7 --kibana-url=https://192.168.121.1:5601 --install-key=NHJLNzdKa0JpOG44dS0wY1FURy06djZ2cExFY1o4MDZJV24tZnNhQmY1UQ== --ingest-key=NGJLNzdKa0JpOG44dS0wY1FURy06cXpkZDlmRllWbmxJMjM1dEdpZm04UQ== --ea-version=9.1.5`
+
+    <img src="./Assets/02-Elastic-agent.png" width=1200px height=600px>
+
+- In above image, we can all our Elastic Agent files are stored in `/opt/Elastic`.
+- If we look carefully, elastic agent config file is `/opt/Elastic/Agent/elastic-agent.yml`.
+- Look contents of `/opt/Elastic/Agent/elastic-agent.yml`. Command:
+    <details>
+    <summary>Detailed Output</summary>
+    <blockquote>
+
+    ~~~sh
+    outputs:
+    default:
+        type: elasticsearch
+        hosts:
+        - http://localhost:9200
+        api_key: 4bK77JkBi8n8u-0cQTG-:qzdd9fFYVnlI235tGifm8Q
+        preset: balanced
+    ~~~
+
+    </blockquote>
+    </details>
+
+- If we look carefully, elastic search host is configured as `0.0.0.0`. So update configuration with below keeping `api_key` same.
+    ```sh
+    outputs:
+      default:
+        type: elasticsearch
+        hosts:
+          - https://192.168.121.1:9200
+        api_key: 4bK77JkBi8n8u-0cQTG-:qzdd9fFYVnlI235tGifm8Q
+        preset: balanced
+        ssl:
+          verification_mode: none
+    ```
+
+- Restart Elastic Agent Service:
+    ```sh
+    sudo systemctl restart elastic-agent
+    ```
+
+    <details>
+    <summary>Detailed Output</summary>
+    <blockquote>
+
+    ~~~sh
+    ● elastic-agent.service - Elastic Agent is a unified agent to observe, monitor and protect your system.
+        Loaded: loaded (/etc/systemd/system/elastic-agent.service; enabled; vendor preset: enabled)
+        Active: active (running) since Thu 2025-10-16 11:37:27 UTC; 4s ago
+    Main PID: 52704 (elastic-agent)
+        Tasks: 65 (limit: 2163)
+        Memory: 623.8M
+            CPU: 1.693s
+        CGroup: /system.slice/elastic-agent.service
+                ├─52704 /opt/Elastic/Agent/elastic-agent
+                ├─52722 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat filebeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.enabl>
+                ├─52729 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat metricbeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.ena>
+                ├─52737 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat metricbeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.ena>
+                ├─52746 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat filebeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.enabl>
+                ├─52753 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat filebeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.enabl>
+                ├─52761 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat metricbeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.ena>
+                └─52768 /opt/Elastic/Agent/data/elastic-agent-9.1.5-7bee01/components/agentbeat metricbeat -E setup.ilm.enabled=false -E setup.template.enabled=false -E management.ena>
+
+    Oct 16 11:37:27 Worker3 systemd[1]: Stopped Elastic Agent is a unified agent to observe, monitor and protect your system..
+    Oct 16 11:37:27 Worker3 systemd[1]: elastic-agent.service: Consumed 2.105s CPU time.
+    Oct 16 11:37:27 Worker3 systemd[1]: Started Elastic Agent is a unified agent to observe, monitor and protect your system..
+    ~~~
+
+    </blockquote>
+    </details>
+
+-  Visit Kibana UI: https://172.19.0.100:5601 or https://192.168.122.1:5601. Login using above creds: `elastic`:`M7u3Y16wm9W06IoYw08n1qok`.
+- Then Go to, `Observability` -> `Infrastructure` -> `Hosts`. We can host list just like below:
+    <img src="./Assets/03-hosts-list.png" width=1200px height=600px>
+
+### Remove folder:
+- Command:
+    ```sh
+    cd $HOME
+    sudo rm -rf auto_detect.sh  elastic-agent-9.1.5-linux-x86_64*
+    ```
+
+## Worker 2
+- You can do same for Worker 2 as of Worker 3.
+
+## Worker 1
+- In Worker 1, we are using Beats i.e FileBeat and MetricBeat.
+- Using Beats instead of Elastic Agent is outdated.
+- Visit [Worker1.md](./Worker1/Worker1.md) to explore it.

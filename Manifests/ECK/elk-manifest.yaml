@@ -5,6 +5,10 @@ metadata:
   namespace: elk
 spec:
   version: 9.1.5
+  # http:
+  #   service:
+  #     spec:
+  #       type: LoadBalancer
   nodeSets:
   - name: default
     count: 3
