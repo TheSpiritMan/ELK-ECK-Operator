@@ -6,14 +6,15 @@ metadata:
 spec:
   type: heartbeat
   version: 9.1.5
-  elasticsearchRef:
-    name: elk-cluster
   config:
     heartbeat.monitors:
       - type: tcp
         schedule: '@every 5s'
         hosts:
           - 'elk-cluster-es-http.elk.svc:9200'
+    output.logstash:
+      hosts: ["elk-logstash-ls-beats.elk.svc:5044"]
+      ssl.enabled: false
   deployment:
     replicas: 1
     podTemplate:

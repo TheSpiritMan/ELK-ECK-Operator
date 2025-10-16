@@ -1,0 +1,56 @@
+apiVersion: logstash.k8s.elastic.co/v1alpha1
+kind: Logstash
+metadata:
+  name: elk-logstash
+  namespace: elk
+spec:
+  count: 1
+  version: 9.1.5
+  elasticsearchRefs:
+    - clusterName: elk-cluster
+      name: elk-cluster
+  pipelines:
+    - pipeline.id: main
+      config.string: |
+        input {
+          beats {
+            port => 5044
+            ssl_enabled => false
+          }
+        }
+
+        filter {
+          # Optional grok pattern, only applies if messages match HTTP logs
+          grok {
+            match => { "message" => "%{HTTPD_COMMONLOG}" }
+            tag_on_failure => ["grok_failure"]
+          }
+
+          geoip {
+            source => "[source][address]"
+            target => "[source]"
+            tag_on_failure => ["geoip_failure"]
+          }
+        }
+
+        output {
+          elasticsearch {
+            hosts => [ "https://elk-cluster-es-http.elk.svc:9200" ]
+            user => "elastic"
+            password => "M7u3Y16wm9W06IoYw08n1qok"
+            ssl_enabled => true
+            ssl_verification_mode => "none"
+            index => "beats-%{+YYYY.MM.dd}"
+          }
+        }
+
+  services:
+    - name: beats
+      service:
+        spec:
+          type: LoadBalancer
+          ports:
+            - port: 5044
+              name: "filebeat"
+              protocol: TCP
+              targetPort: 5044

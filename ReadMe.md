@@ -153,7 +153,7 @@
 
 - Configure Metal LB IPAddressPool:
     ```sh
-    kaf Manifests/metallb-ipPool.yaml
+    kaf Manifests/MetalLB/metallb-ipPool.yaml
     ```
 
 ## Deploy ELK Operator in Kubernetes Cluster
@@ -215,12 +215,12 @@
     </details>
 
 ## Deploy ELK Cluster
-- We have [elk-manifest.yaml](./Manifests/elk-manifest.yaml) file which contains Elasticsearch and Kibana.
+- We have [elk-manifest.yaml](./Manifests/ECK/elk-manifest.yaml) file which contains Elasticsearch and Kibana.
 - If we look closely, it is using namespace `elk`.
 - Deploy:
     ```sh
     k create ns elk
-    kaf Manifests/elk-manifest.yaml
+    kaf Manifests/ECK/elk-manifest.yaml
     ```
 
 - After successful deployments:
@@ -233,48 +233,48 @@
     <blockquote>
 
     ~~~sh
-    NAME                                READY   STATUS    RESTARTS   AGE
-    pod/elk-cluster-es-default-0        1/1     Running   0          2m47s
-    pod/elk-cluster-es-default-1        1/1     Running   0          2m47s
-    pod/elk-cluster-es-default-2        1/1     Running   0          2m47s
-    pod/elk-kibana-kb-8ff548998-rh5vl   1/1     Running   0          2m47s
+    NAME                                 READY   STATUS    RESTARTS   AGE
+    pod/elk-cluster-es-default-0         1/1     Running   0          57s
+    pod/elk-cluster-es-default-1         1/1     Running   0          57s
+    pod/elk-cluster-es-default-2         1/1     Running   0          57s
+    pod/elk-kibana-kb-7845cfb45c-nq85d   1/1     Running   0          57s
 
-    NAME                                   TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)           AGE
-    service/elk-cluster-es-default         ClusterIP      None            <none>         9200/TCP          2m47s
-    service/elk-cluster-es-http            ClusterIP      10.96.145.188   <none>         9200/TCP          2m47s
-    service/elk-cluster-es-internal-http   ClusterIP      10.96.254.155   <none>         9200/TCP          2m47s
-    service/elk-cluster-es-transport       ClusterIP      None            <none>         9300/TCP          2m47s
-    service/elk-kibana-kb-http             LoadBalancer   10.96.90.28     172.19.0.100   5601:31773/TCP    60m
+    NAME                                   TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)          AGE
+    service/elk-cluster-es-default         ClusterIP      None            <none>         9200/TCP         57s
+    service/elk-cluster-es-http            ClusterIP      10.96.163.88    <none>         9200/TCP         58s
+    service/elk-cluster-es-internal-http   ClusterIP      10.96.170.194   <none>         9200/TCP         58s
+    service/elk-cluster-es-transport       ClusterIP      None            <none>         9300/TCP         58s
+    service/elk-kibana-kb-http             LoadBalancer   10.96.90.105    172.19.0.100   5601:32069/TCP   57s
 
     NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
-    deployment.apps/elk-kibana-kb   1/1     1            1           2m47s
+    deployment.apps/elk-kibana-kb   1/1     1            1           57s
 
-    NAME                                      DESIRED   CURRENT   READY   AGE
-    replicaset.apps/elk-kibana-kb-8ff548998   1         1         1       2m47s
+    NAME                                       DESIRED   CURRENT   READY   AGE
+    replicaset.apps/elk-kibana-kb-7845cfb45c   1         1         1       57s
 
     NAME                                      READY   AGE
-    statefulset.apps/elk-cluster-es-default   3/3     2m47s
+    statefulset.apps/elk-cluster-es-default   3/3     57s
 
     NAME                                               TYPE     DATA   AGE
-    secret/elk-cluster-es-default-es-config            Opaque   1      2m47s
-    secret/elk-cluster-es-default-es-transport-certs   Opaque   7      2m47s
-    secret/elk-cluster-es-elastic-user                 Opaque   1      2m47s
-    secret/elk-cluster-es-file-settings                Opaque   1      2m47s
-    secret/elk-cluster-es-http-ca-internal             Opaque   2      2m47s
-    secret/elk-cluster-es-http-certs-internal          Opaque   3      2m47s
-    secret/elk-cluster-es-http-certs-public            Opaque   2      2m47s
-    secret/elk-cluster-es-internal-users               Opaque   5      2m47s
-    secret/elk-cluster-es-remote-ca                    Opaque   1      2m47s
-    secret/elk-cluster-es-transport-ca-internal        Opaque   2      2m47s
-    secret/elk-cluster-es-transport-certs-public       Opaque   1      2m47s
-    secret/elk-cluster-es-xpack-file-realm             Opaque   4      2m47s
-    secret/elk-elk-kibana-kibana-user                  Opaque   2      2m47s
-    secret/elk-kibana-kb-config                        Opaque   1      2m47s
-    secret/elk-kibana-kb-es-ca                         Opaque   2      2m47s
-    secret/elk-kibana-kb-http-ca-internal              Opaque   2      2m47s
-    secret/elk-kibana-kb-http-certs-internal           Opaque   3      2m47s
-    secret/elk-kibana-kb-http-certs-public             Opaque   2      2m47s
-    secret/elk-kibana-kibana-user                      Opaque   4      2m47s
+    secret/elk-cluster-es-default-es-config            Opaque   1      57s
+    secret/elk-cluster-es-default-es-transport-certs   Opaque   7      57s
+    secret/elk-cluster-es-elastic-user                 Opaque   1      58s
+    secret/elk-cluster-es-file-settings                Opaque   1      57s
+    secret/elk-cluster-es-http-ca-internal             Opaque   2      57s
+    secret/elk-cluster-es-http-certs-internal          Opaque   3      57s
+    secret/elk-cluster-es-http-certs-public            Opaque   2      57s
+    secret/elk-cluster-es-internal-users               Opaque   5      58s
+    secret/elk-cluster-es-remote-ca                    Opaque   1      57s
+    secret/elk-cluster-es-transport-ca-internal        Opaque   2      57s
+    secret/elk-cluster-es-transport-certs-public       Opaque   1      57s
+    secret/elk-cluster-es-xpack-file-realm             Opaque   4      58s
+    secret/elk-elk-kibana-kibana-user                  Opaque   2      57s
+    secret/elk-kibana-kb-config                        Opaque   1      57s
+    secret/elk-kibana-kb-es-ca                         Opaque   2      57s
+    secret/elk-kibana-kb-http-ca-internal              Opaque   2      57s
+    secret/elk-kibana-kb-http-certs-internal           Opaque   3      57s
+    secret/elk-kibana-kb-http-certs-public             Opaque   2      57s
+    secret/elk-kibana-kibana-user                      Opaque   4      57s
     ~~~
 
     </blockquote>
@@ -287,7 +287,7 @@
     ```
 - Output will be similar like below:
     ```sh
-    ka8s32Tc2aFP70k07PrX8vV4
+    M7u3Y16wm9W06IoYw08n1qok
     ```
 
 ### Port Forward:
@@ -301,48 +301,48 @@
     <blockquote>
 
     ~~~sh
-    NAME                           TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)        AGE
-    elk-cluster-es-default         ClusterIP      None            <none>         9200/TCP       13m
-    elk-cluster-es-http            ClusterIP      10.96.145.188   <none>         9200/TCP       13m
-    elk-cluster-es-internal-http   ClusterIP      10.96.254.155   <none>         9200/TCP       13m
-    elk-cluster-es-transport       ClusterIP      None            <none>         9300/TCP       13m
-    elk-kibana-kb-http             LoadBalancer   10.96.90.28     172.19.0.100   5601:31773/TCP 13m
+    NAME                           TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)          AGE
+    elk-cluster-es-default         ClusterIP      None            <none>         9200/TCP         4m41s
+    elk-cluster-es-http            ClusterIP      10.96.163.88    <none>         9200/TCP         4m42s
+    elk-cluster-es-internal-http   ClusterIP      10.96.170.194   <none>         9200/TCP         4m42s
+    elk-cluster-es-transport       ClusterIP      None            <none>         9300/TCP         4m42s
+    elk-kibana-kb-http             LoadBalancer   10.96.90.105    172.19.0.100   5601:32069/TCP   4m41s
     ~~~
 
     </blockquote>
     </details>
 
-- Visit: https://172.19.0.100:5601. Login using above creds: `elastic`:`ka8s32Tc2aFP70k07PrX8vV4`.
+- Visit: https://172.19.0.100:5601. Login using above creds: `elastic`:`M7u3Y16wm9W06IoYw08n1qok`.
 
 
 ### Deploy Logstash
 - Command:
     ```sh
-    kaf Manifests/logstash.yaml 
+    kaf Manifests/ECK/logstash.yaml 
     ```
 
 ### Deploy Beat:
 - HeartBeat:
     ```sh
-    kaf Manifests/beat.yaml 
+    kaf Manifests/ECK/heartbeat.yaml 
     ```
 
 ### Deploy FileBeat:
 - Before deploying filebeat manifest file, make a change to elastic password in your case.
 - Deploy:
     ```sh
-    kaf Manifests/filebeat-kubernetes.yaml
+    kaf Manifests/ECK/filebeat.yaml
     ```
 
 ### Deploy Test App:
 - Command:
     ```sh
-    kaf Manifests/busybox-testapp.yaml 
+    kaf Manifests/ECK/busybox-testapp.yaml 
     ```
 
 ## Kibana UI:
 - Visit: https://172.19.0.100:5601. 
-- Login using above creds: `elastic`:`ka8s32Tc2aFP70k07PrX8vV4`.
+- Login using above creds: `elastic`:`M7u3Y16wm9W06IoYw08n1qok`.
 - Then go to `Observability` -> `Logs`. We can see all logs.
 - Now, type `message` in left search box and `Busybox` in right search box. We can see from our Busybox Testapp.
     <img src="./Assets/01-Kibana-Logs.png" width=1200px height=600px>
