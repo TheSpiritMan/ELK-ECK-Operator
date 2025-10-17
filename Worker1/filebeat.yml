@@ -10,8 +10,8 @@ filebeat.inputs:
       - /var/log/nginx/*.log
     tags: ["nginx"]
     # Allow smaller files to be ingested
-    prospector.scanner.fingerprint.length: 16
-    prospector.scanner.fingerprint.offset: 0
+    # prospector.scanner.fingerprint.length: 16
+    # prospector.scanner.fingerprint.offset: 0
     ignore_older: 0s  # Optional: don't ignore new small files
 
   # Fail2ban logs
@@ -21,14 +21,14 @@ filebeat.inputs:
     paths:
       - /var/log/fail2ban.log
     tags: ["fail2ban"]
-    prospector.scanner.fingerprint.length: 16
-    prospector.scanner.fingerprint.offset: 0
+    # prospector.scanner.fingerprint.length: 16
+    # prospector.scanner.fingerprint.offset: 0
     ignore_older: 0s
 
-# Disable modules entirely to remove module-related errors
-filebeat.config.modules:
-  path: /etc/filebeat/modules.d/*.yml
-  reload.enabled: false
+# # Disable modules entirely to remove module-related errors
+# filebeat.config.modules:
+#   path: /etc/filebeat/modules.d/*.yml
+#   reload.enabled: false
 
 filebeat.modules: []
 
@@ -37,7 +37,7 @@ output.elasticsearch:
   enabled: false
 
 output.logstash:
-  hosts: ["192.168.121.1:5044"]  # Ensure default Logstash port
+  hosts: ["192.168.121.1"]  # Ensure default Logstash port
   ssl.enabled: false
 
 # Add metadata to each event

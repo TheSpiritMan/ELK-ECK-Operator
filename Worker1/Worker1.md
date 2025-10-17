@@ -50,6 +50,8 @@
 
 - Start systemctl service:
     ```sh
+    sudo systemctl stop filebeat
+    sudo systemctl disable filebeat
     sudo systemctl enable filebeat
     sudo systemctl start filebeat
     sudo systemctl status filebeat
@@ -104,6 +106,8 @@
 
 - Start systemctl service:
     ```sh
+    sudo systemctl disable metricbeat
+    sudo systemctl stop metricbeat
     sudo systemctl enable metricbeat
     sudo systemctl start metricbeat
     sudo systemctl status metricbeat
@@ -113,4 +117,41 @@
 - Command:
     ```sh
     sudo rm /tmp/metricbeat-9.1.5-amd64.deb /tmp/filebeat-9.1.5-amd64.deb
+    ```
+
+
+## Debugging
+- Test for Nginx Log:
+    ```sh
+    curl -k -u elastic:M7u3Y16wm9W06IoYw08n1qok \
+    -H "Content-Type: application/json" \
+    https://localhost:9200/beats-*/_search?pretty \
+    -d '{
+        "query": { "match": { "tags": "nginx" } }
+    }'
+    ```
+
+- Test for Fail2Ban Log:
+
+    ```sh
+    curl -k -u elastic:M7u3Y16wm9W06IoYw08n1qok \
+    -H "Content-Type: application/json" \
+    https://localhost:9200/beats-*/_search?pretty \
+    -d '{
+        "query": { "match": { "tags": "fail2ban" } }
+    }'
+    ```
+
+- `Worker1` Host within 1 hour:
+    ```sh
+    curl -k -u elastic:M7u3Y16wm9W06IoYw08n1qok -H "Content-Type: application/json" https://localhost:9200/beats-*/_search?pretty -d '{
+    "query": {
+        "bool": {
+        "must": [
+            { "match": { "host.name": "worker1" } },
+            { "range": { "@timestamp": { "gte": "now-5m" } } }
+        ]
+        }
+    }
+    }'
     ```

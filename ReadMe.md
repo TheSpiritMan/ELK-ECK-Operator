@@ -9,7 +9,7 @@
 - For me, IP of each nodes:
     - Host: `192.168.121.1`
     - ELK: `192.168.121.2`
-    - Worker1: `192.168.121.101`
+    - Worker1: `192.168.121.79`
     - Worker2: `192.168.121.166`
     - Worker3: `192.168.121.59`
 
@@ -493,3 +493,16 @@
 - In Worker 1, we are using Beats i.e FileBeat and MetricBeat.
 - Using Beats instead of Elastic Agent is outdated.
 - Visit [Worker1.md](./Worker1/Worker1.md) to explore it.
+
+## Add Data View
+- Go to `Analytics` -> `Discover`. We can only see `filebeat-*`, `logs-*` and `metrics-*` in the list. But we have send another data view i.e `beats-*`.
+    <img src="./Assets/04-data-view-list.png" width=1200px height=500px>
+
+- Now, let's add `beats-*` as data view.
+- Go to `Management` -> `Stack Management` -> `Kibana` -> `Data Views`. Click on `Create Data View` on top right corner.
+- Insert `Name`: `Beats Logs and Metrics` and `Index pattern`: `beats-*`. Click on `Save data view to Kibana`.
+    <img src="./Assets/05-create-data-view.png" width=1200px height=600px>
+
+
+- Go back to `Analytics` -> `Discover`. Select `Beats Logs and Metrics` from the list. Now, We can see logs from VM `Worker1`.
+    <img src="./Assets/06-beats-log-metrics.png" width=1200px height=600px>
